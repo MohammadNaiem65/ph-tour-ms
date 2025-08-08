@@ -10,11 +10,7 @@ const getUsers = (req: Request, res: Response) => {
 };
 
 const createUser = asyncHandler(async (req: Request, res: Response) => {
-    const { name, email } = req.body;
-
-    const data = { name, email };
-
-    const response = await UserServices.createUser(data);
+    const response = await UserServices.createUser(req.body);
 
     sendResponse<IUser>(res, {
         success: true,

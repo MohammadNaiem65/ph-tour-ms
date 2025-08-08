@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 export enum Role {
     SUPER_ADMIN = 'SUPER_ADMIN',
@@ -31,4 +31,8 @@ export interface IUser {
     auths: IAuthProvider[];
     bookings?: Types.ObjectId[];
     guides?: Types.ObjectId[];
+}
+
+export interface UserModelType extends Model<IUser> {
+    existsByEmail(email: string): Promise<boolean>;
 }

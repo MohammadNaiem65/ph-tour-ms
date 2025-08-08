@@ -1,5 +1,11 @@
 import { model, Schema } from 'mongoose';
-import { IAuthProvider, IsActive, IUser, Role } from './user.interface';
+import {
+    IAuthProvider,
+    IsActive,
+    IUser,
+    Role,
+    UserModelType,
+} from './user.interface';
 
 const authProviderSchema = new Schema<IAuthProvider>(
     {
@@ -18,7 +24,7 @@ const authProviderSchema = new Schema<IAuthProvider>(
     }
 );
 
-const userSchema = new Schema<IUser>(
+const userSchema = new Schema<IUser, UserModelType>(
     {
         name: {
             type: String,
@@ -71,9 +77,30 @@ const userSchema = new Schema<IUser>(
     {
         timestamps: true,
         versionKey: false,
+        // statics: {
+        //     existsByEmail: function (email: string) {
+        //         return this.exists({ email: new RegExp(email.trim(), 'i') });
+        //     },
+        // },
     }
 );
 
-const User = model<IUser>('User', userSchema);
+// /**
+//  * Checks if a user exists in the database with the given email.
+//  *
+//  * @param {string} email - The email to search for.
+//  * @returns {Promise<boolean>} - true if a user with the given email exists, false otherwise.
+//  */
+userSchema.statics.existsByEmail = async function (
+    email: string
+): Promise<boolean> {
+    const user = await this.exists({
+        email: new RegExp(email.trim(), 'i'),
+    });
+
+    return !!user;
+};
+
+const User = model<IUser, UserModelType>('User', userSchema);
 
 export default User;
