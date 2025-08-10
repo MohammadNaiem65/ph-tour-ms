@@ -1,6 +1,7 @@
 import { Server } from 'http';
 import mongoose from 'mongoose';
 import app from './app';
+import gracefulShutdown from './app/errorHelpers/gracefulShutdown';
 import envConfigs from './config/env';
 
 let server: Server;
@@ -29,30 +30,19 @@ async function bootstrap() {
     }
 }
 
-const closeServer = (error?: Error | unknown) => {
-    console.log('🚀 ~ Uncaught Error:', error);
-    if (server) {
-        server.close(() => {
-            process.exit(1);
-        });
-    } else {
-        process.exit(1);
-    }
-};
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM', server));
+process.on('SIGINT', () => gracefulShutdown('SIGINT', server)); // Ctrl+C
 
-// Local code error
-process.on('uncaughtException', (error) => {
-    closeServer(error);
+// Handle critical errors
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1); // Exit immediately for uncaught exceptions
 });
 
-// Promise error & rejections
-process.on('unhandledRejection', (error) => {
-    closeServer(error);
-});
-
-// Signal Termination
-process.on('SIGTERM', () => {
-    closeServer();
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
+    process.exit(1); // Exit immediately for unhandled rejections
 });
 
 bootstrap();
