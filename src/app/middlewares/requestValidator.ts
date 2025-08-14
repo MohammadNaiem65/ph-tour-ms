@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { ZodObject, ZodRawShape } from 'zod';
+import z, { ZodError, ZodObject, ZodRawShape } from 'zod';
 import AppError from '../errorHelpers/AppError';
 
 export default function requestValidator(
@@ -11,12 +11,17 @@ export default function requestValidator(
             req.body = await validatorSchema.parseAsync(req.body);
             next();
         } catch (error) {
-            // console.log('🚀 ~ requestValidator ~ error:', error);
-            const message =
-                error && typeof error === 'object' && 'message' in error
-                    ? (error as { message: string }).message
-                    : 'Validation error';
-            const err = new AppError(StatusCodes.BAD_REQUEST, message);
+            // console.log(
+            //     '🚀 ~ requestValidator ~ error:',
+            //     (error as ZodError).issues
+            // );
+
+            const response = z.flattenError(error as ZodError).fieldErrors;
+
+            const err = new AppError(
+                StatusCodes.BAD_REQUEST,
+                JSON.stringify(response)
+            );
             next(err);
         }
     };

@@ -1,8 +1,9 @@
+import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import asyncHandler from '../../utils/asyncHandler';
 import sendResponse from '../../utils/sendResponse';
-import { IUser } from './user.interface';
+import { IAuthProvider, IUser, Role } from './user.interface';
 import { UserServices } from './user.service';
 
 const getUsers = (req: Request, res: Response) => {
@@ -10,6 +11,18 @@ const getUsers = (req: Request, res: Response) => {
 };
 
 const createUser = asyncHandler(async (req: Request, res: Response) => {
+    const { password } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    req.body.password = hashedPassword;
+    const authProvider: IAuthProvider = {
+        provider: 'credentials',
+        providerId: req.body.email,
+    };
+    req.body.auths = [authProvider];
+    req.body.role = Role.USER;
+
     const response = await UserServices.createUser(req.body);
 
     sendResponse<IUser>(res, {
@@ -18,32 +31,6 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
         message: 'User created successfully.',
         data: response,
     });
-
-    // res.status(StatusCodes.CREATED).json({
-    //     message: 'User created successfully.',
-    //     data: response,
-    // });
 });
-
-// const createUser = async (req: Request, res: Response) => {
-//     try {
-//         const { name, email } = req.body;
-
-//         const data = { name, email };
-
-//         const response = await UserServices.createUser(data);
-
-//         res.status(StatusCodes.CREATED).json({
-//             message: 'User created successfully.',
-//             data: response,
-//         });
-//     } catch (error: any) {
-//         console.log('🚀 ~ createUser ~ error:', error);
-//         res.status(StatusCodes.BAD_REQUEST).json({
-//             message: error.message,
-//             error: error,
-//         });
-//     }
-// };
 
 export const UserControllers = { createUser, getUsers };

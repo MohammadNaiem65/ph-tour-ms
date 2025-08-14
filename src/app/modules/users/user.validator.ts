@@ -13,12 +13,11 @@ export const createUserZodSchema = z.object({
         .trim()
         .min(8, { error: 'The password must be at least 8 characters long' })
         .regex(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]$/,
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
             {
                 error: 'Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character.',
             }
-        )
-        .optional(),
+        ),
     phone: z
         .string({ error: 'Phone Number must be string' })
         .trim()
